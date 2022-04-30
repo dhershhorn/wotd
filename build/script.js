@@ -1,28 +1,47 @@
 import { WORDS } from "./words.js";
 
-const NUMBER_OF_GUESSES = 6;
+const NUMBER_OF_GUESSES = 12;
+const PERFECT_SCORE = 100;
+let totalScore = PERFECT_SCORE;
 let guessesRemaining = NUMBER_OF_GUESSES;
 let currentGuess = [];
 let nextLetter = 0;
 let rightGuessString = WORDS[Math.floor(Math.random() * WORDS.length)]
+let topScore = 0;
 
 console.log(rightGuessString)
 
 function initBoard() {
     let board = document.getElementById("game-board");
+    document.getElementById("high-score").textContent = "High Score: 0"
 
     for (let i = 0; i < NUMBER_OF_GUESSES; i++) {
         let row = document.createElement("div")
         row.className = "letter-row"
-        
+
+        /*
+        let rownum = document.createElement("div")
+        rownum.className = "rownum-box"
+        rownum.textContent = i+1
+        row.appendChild(rownum)
+        */
+
         for (let j = 0; j < 5; j++) {
             let box = document.createElement("div")
             box.className = "letter-box"
             row.appendChild(box)
         }
 
+        ///*
+        let rowscore = document.createElement("div")
+        rowscore.className = "rowscore-box"
+        // if ( i === 0 ) rowscore.textContent = "100"
+        row.appendChild(rowscore)
+        //*/
+
         board.appendChild(row)
     }
+
 }
 
 function shadeKeyBoard(letter, color) {
@@ -44,7 +63,7 @@ function shadeKeyBoard(letter, color) {
 }
 
 function deleteLetter () {
-    let row = document.getElementsByClassName("letter-row")[6 - guessesRemaining]
+    let row = document.getElementsByClassName("letter-row")[NUMBER_OF_GUESSES - guessesRemaining]
     let box = row.children[nextLetter - 1]
     box.textContent = ""
     box.classList.remove("filled-box")
@@ -53,7 +72,7 @@ function deleteLetter () {
 }
 
 function checkGuess () {
-    let row = document.getElementsByClassName("letter-row")[6 - guessesRemaining]
+    let row = document.getElementsByClassName("letter-row")[NUMBER_OF_GUESSES - guessesRemaining]
     let guessString = ''
     let rightGuess = Array.from(rightGuessString)
 
@@ -71,7 +90,7 @@ function checkGuess () {
         return
     }
 
-    
+    let numMatch = 0
     for (let i = 0; i < 5; i++) {
         let letterColor = ''
         let box = row.children[i]
@@ -85,12 +104,13 @@ function checkGuess () {
             // now, letter is definitely in word
             // if letter index and right guess index are the same
             // letter is in the right position 
+            numMatch++
             if (currentGuess[i] === rightGuess[i]) {
                 // shade green 
                 letterColor = 'green'
             } else {
                 // shade box yellow
-                letterColor = 'yellow'
+                letterColor = 'green'
             }
 
             rightGuess[letterPosition] = "#"
@@ -107,10 +127,28 @@ function checkGuess () {
     }
 
     if (guessString === rightGuessString) {
-        toastr.success("You guessed right! Game over!")
+        totalScore -= 0
+        row.children[5].textContent = totalScore
+        if (totalScore > topScore) {
+            toastr.success("You set a new high score! Previous high score was " + topScore)
+            topScore = totalScore
+            document.getElementById("high-score").textContent = "High Score: " + topScore
+        } else {
+            toastr.success("You guessed right! Game over! High score is " + topScore)
+        }
+        
         guessesRemaining = 0
         return
     } else {
+        //totalScore -= 5
+        if (numMatch === 0) {
+            totalScore -= 0 // no penalty for a total blank
+        } else if (numMatch === 5) {
+            totalScore -= 1 // only one point docked for an anagram
+        } else {
+            totalScore -= 5 - numMatch // one point per wrong letter
+        }
+        row.children[5].textContent = totalScore
         guessesRemaining -= 1;
         currentGuess = [];
         nextLetter = 0;
@@ -128,7 +166,7 @@ function insertLetter (pressedKey) {
     }
     pressedKey = pressedKey.toLowerCase()
 
-    let row = document.getElementsByClassName("letter-row")[6 - guessesRemaining]
+    let row = document.getElementsByClassName("letter-row")[NUMBER_OF_GUESSES - guessesRemaining]
     let box = row.children[nextLetter]
     animateCSS(box, "pulse")
     box.textContent = pressedKey

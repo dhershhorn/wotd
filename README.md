@@ -24,3 +24,5 @@ Otherwise, each guess spends up to 5 points from the total possible 100 as follo
 * Add persistent daily high score
 * Add authorization to prevent playing more than once per day by player
 * Revise UI to include help info and scoring details/tips
+* Use better dictionary file or clean up current
+* Establish hosting and publish
